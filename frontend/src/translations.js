@@ -42,4 +42,3 @@ export const translations = {
     completed: '傳輸完成'
   }
 }
-

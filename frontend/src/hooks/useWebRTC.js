@@ -6,6 +6,7 @@ const CHUNK_SIZE = 64 * 1024 // 64KB
 
 /**
  * Hook to manage WebRTC P2P connection and signaling.
+ * @returns {object} The WebRTC state and control functions.
  */
 export function useWebRTC() {
   const [socket, setSocket] = useState(null)
@@ -55,11 +56,12 @@ export function useWebRTC() {
     return () => {
       s.disconnect()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [peerConnection, roomId])
 
   /**
    * Initializes the RTCPeerConnection.
+   * @returns {void}
    */
   const createPeerConnection = (sigSocket, room, isInitiator) => {
     const pc = new RTCPeerConnection({
@@ -93,6 +95,7 @@ export function useWebRTC() {
 
   /**
    * Configures the data channel.
+   * @returns {void}
    */
   const setupDataChannel = (dc) => {
     dc.binaryType = 'arraybuffer'
@@ -136,6 +139,7 @@ export function useWebRTC() {
 
   /**
    * Sends a file through the data channel in chunks.
+   * @returns {Promise<void>}
    */
   const sendFile = async (file) => {
     if (!sendChannel.current || sendChannel.current.readyState !== 'open') return
@@ -172,6 +176,7 @@ export function useWebRTC() {
 
   /**
    * Requests a new flash code.
+   * @returns {void}
    */
   const generateCode = () => {
     if (socket) {
@@ -183,6 +188,7 @@ export function useWebRTC() {
 
   /**
    * Verifies the code and initiates connection.
+   * @returns {Promise<object>}
    */
   const verifyCodeAndConnect = (code) => {
     return new Promise((resolve, reject) => {
