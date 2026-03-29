@@ -3,6 +3,9 @@ import { io } from 'socket.io-client'
 
 const URL = 'http://localhost:3001'
 
+/**
+ * @returns {Object}
+ */
 export function useWebRTC() {
   const [socket, setSocket] = useState(null)
   const [peerConnection, setPeerConnection] = useState(null)
@@ -45,10 +48,12 @@ export function useWebRTC() {
       await peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
     })
 
-    return () => { s.disconnect() }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => s.disconnect()
   }, [])
 
+  /**
+   * @returns {void}
+   */
   const createPeerConnection = (sigSocket, room, isInitiator) => {
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -79,6 +84,9 @@ export function useWebRTC() {
     }
   }
 
+  /**
+   * @returns {void}
+   */
   const setupDataChannel = (dc) => {
     dc.onopen = () => {
       console.log('Data channel open!')
@@ -93,6 +101,9 @@ export function useWebRTC() {
     }
   }
 
+  /**
+   * @returns {void}
+   */
   const generateCode = () => {
     if (socket) {
       socket.emit('generate-code', (res) => {
@@ -101,6 +112,9 @@ export function useWebRTC() {
     }
   }
 
+  /**
+   * @returns {Promise<any>}
+   */
   const verifyCodeAndConnect = (code) => {
     return new Promise((resolve, reject) => {
       if (socket) {
