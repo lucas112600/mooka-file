@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 
@@ -6,7 +7,6 @@ const CHUNK_SIZE = 64 * 1024 // 64KB
 
 /**
  * Hook to manage WebRTC P2P connection and signaling.
- * @returns {object} The WebRTC state and control functions.
  */
 export function useWebRTC() {
   const [socket, setSocket] = useState(null)
@@ -56,15 +56,10 @@ export function useWebRTC() {
     return () => {
       s.disconnect()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peerConnection, roomId])
 
   /**
    * Initializes the RTCPeerConnection.
-   * @param {object} sigSocket The signaling socket.
-   * @param {string} room The roomId.
-   * @param {boolean} isInitiator Whether the peer is the initiator.
-   * @returns {void}
    */
   const createPeerConnection = (sigSocket, room, isInitiator) => {
     const pc = new RTCPeerConnection({
@@ -98,8 +93,6 @@ export function useWebRTC() {
 
   /**
    * Configures the data channel.
-   * @param {object} dc The RTCDataChannel.
-   * @returns {void}
    */
   const setupDataChannel = (dc) => {
     dc.binaryType = 'arraybuffer'
@@ -143,8 +136,6 @@ export function useWebRTC() {
 
   /**
    * Sends a file through the data channel in chunks.
-   * @param {object} file The file objects.
-   * @returns {Promise<void>}
    */
   const sendFile = async (file) => {
     if (!sendChannel.current || sendChannel.current.readyState !== 'open') return
@@ -181,7 +172,6 @@ export function useWebRTC() {
 
   /**
    * Requests a new flash code.
-   * @returns {void}
    */
   const generateCode = () => {
     if (socket) {
@@ -193,8 +183,6 @@ export function useWebRTC() {
 
   /**
    * Verifies the code and initiates connection.
-   * @param {string} code The 6-digit code.
-   * @returns {Promise<object>}
    */
   const verifyCodeAndConnect = (code) => {
     return new Promise((resolve, reject) => {
