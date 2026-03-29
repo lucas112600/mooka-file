@@ -1,20 +1,22 @@
 {
-  "name": "backend",
+  "name": "mooka-file-unified",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Professional-Grade P2P File Transfer with Unified Deployment",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "build:backend": "cd backend && npm install",
+    "build": "npm run build:frontend && npm run build:backend",
+    "start": "cd backend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm start"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "description": "",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "node-cache": "^5.1.2",
-    "socket.io": "^4.8.3",
-    "uuid": "^13.0.0"
-  }
+  "keywords": [
+    "webrtc",
+    "p2p",
+    "file-transfer",
+    "react",
+    "socketio"
+  ],
+  "author": "Mooka Technologies",
+  "license": "ISC"
 }

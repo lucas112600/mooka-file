@@ -56,11 +56,14 @@ export function useWebRTC() {
     return () => {
       s.disconnect()
     }
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peerConnection, roomId])
 
   /**
    * Initializes the RTCPeerConnection.
+   * @param {object} sigSocket The signaling socket.
+   * @param {string} room The roomId.
+   * @param {boolean} isInitiator Whether the peer is the initiator.
    * @returns {void}
    */
   const createPeerConnection = (sigSocket, room, isInitiator) => {
@@ -95,6 +98,7 @@ export function useWebRTC() {
 
   /**
    * Configures the data channel.
+   * @param {object} dc The RTCDataChannel.
    * @returns {void}
    */
   const setupDataChannel = (dc) => {
@@ -139,6 +143,7 @@ export function useWebRTC() {
 
   /**
    * Sends a file through the data channel in chunks.
+   * @param {object} file The file objects.
    * @returns {Promise<void>}
    */
   const sendFile = async (file) => {
@@ -188,6 +193,7 @@ export function useWebRTC() {
 
   /**
    * Verifies the code and initiates connection.
+   * @param {string} code The 6-digit code.
    * @returns {Promise<object>}
    */
   const verifyCodeAndConnect = (code) => {

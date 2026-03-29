@@ -4,9 +4,17 @@ import { Server } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import NodeCache from 'node-cache'
 import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 app.use(cors())
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'dist')))
 
 const server = http.createServer(app)
 const io = new Server(server, {
@@ -19,8 +27,9 @@ const io = new Server(server, {
 // Cache for 5 minutes (TTL: 300s)
 const codeCache = new NodeCache({ stdTTL: 300, checkperiod: 60 })
 
-app.get('/', (req, res) => {
-  res.send('Mooka Signaling Server is Running. Visit port 3000 for the Frontend UI!')
+// ALL other routes should serve the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'))
 })
 
 io.on('connection', (socket) => {
@@ -64,5 +73,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3001
 server.listen(PORT, () => {
-  console.log(`Signaling server running on port ${PORT}`)
+  console.log(`Unified Mooka Server running on port ${PORT}`)
 })
