@@ -1,38 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Clock, Copy } from '@phosphor-icons/react'
+import { translations } from '../translations'
 
-export default function FlashCodeDisplay({ code }) {
-  const [timeLeft, setTimeLeft] = useState(300) // 5 minutes in seconds
-  const formattedCode = code ? `${code.slice(0, 3)} ${code.slice(3, 6)}` : '...'
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const progress = (timeLeft / 300) * 100
+export default function FlashCodeDisplay({ code, lang }) {
+  const t = translations[lang]
+  const formattedCode = code ? code.toString().split('').join(' ') : '0 0 0 0 0 0'
 
   return (
-    <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', minWidth: '320px' }}>
-      <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-        <Clock size={20} weight="regular" /> The Flash Code
-      </h2>
-      
-      <div style={{ fontSize: '3rem', fontWeight: '700', letterSpacing: '8px', color: 'var(--tech-blue)', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-        <span>{code}</span>
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} title="Copy Code">
-          <Copy size={24} weight="regular" />
-        </button>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%' }}>
+      <div style={{ padding: '2rem', borderRadius: '24px', background: 'white', border: '1px solid #e2e8f0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)', textAlign: 'center', width: '100%' }}>
+        <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t.waiting}</p>
+        <h2 style={{ fontSize: '3.5rem', fontWeight: '800', letterSpacing: '0.2em', color: 'var(--base-indigo)', fontFamily: 'monospace' }}>{formattedCode}</h2>
       </div>
-
-      <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
-        <div style={{ width: `${progress}%`, height: '100%', background: 'var(--tech-blue)', transition: 'width 1s linear' }} />
-      </div>
-      <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-        Expires in {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
-      </p>
+      <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>{t.ready}</p>
     </div>
   )
 }

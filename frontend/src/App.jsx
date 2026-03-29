@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RocketLaunch, PaperPlane, ShieldCheck } from '@phosphor-icons/react'
+import { RocketLaunch, PaperPlane, ShieldCheck, Globe } from '@phosphor-icons/react'
 import RadarScanner from './components/RadarScanner'
 import DeviceList from './components/DeviceList'
 import FlashCodeDisplay from './components/FlashCodeDisplay'
@@ -7,10 +7,14 @@ import ReceiverInput from './components/ReceiverInput'
 import TransferZone from './components/TransferZone'
 import CloudClipboard from './components/CloudClipboard'
 import { useWebRTC } from './hooks/useWebRTC'
+import { translations } from './translations'
 
 function App() {
+  const [lang, setLang] = useState('zhtw')
   const [view, setView] = useState('home') // home, sender, receiver
   const [discoveredDevices, setDiscoveredDevices] = useState([])
+  const t = translations[lang]
+
   const { generateCode, flashCode, verifyCodeAndConnect, connectionStatus } = useWebRTC()
 
   useEffect(() => {
@@ -18,6 +22,10 @@ function App() {
       generateCode()
     }
   }, [view, flashCode, generateCode])
+
+  const toggleLang = () => {
+    setLang(prev => prev === 'en' ? 'zhtw' : 'en')
+  }
 
   const handleBluetoothDiscovery = async () => {
     try {
@@ -52,89 +60,101 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Header */}
-      <header className="glass-panel" style={{ padding: '1rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <RocketLaunch size={32} color="var(--tech-blue)" weight="regular" />
-        <h1 style={{ fontSize: '1.5rem', fontWeight: '600' }}>Mooka File</h1>
+      {/* Header Branding */}
+      <header className="glass-panel main-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="logo-container">
+             <RocketLaunch size={32} color="var(--tech-blue)" weight="fill" />
+          </div>
+          <div>
+            <h1 className="brand-title">Mooka File</h1>
+            <p className="brand-slogan">Seamless Flow, Professional Grade.</p>
+          </div>
+        </div>
+        <button onClick={toggleLang} className="lang-toggle">
+          <Globe size={20} weight="regular" />
+          <span>{lang === 'en' ? '中文' : 'EN'}</span>
+        </button>
       </header>
 
       {/* Main Content Area */}
-      <main className="glass-panel" style={{ padding: '2rem', width: '90%', maxWidth: '800px', minHeight: '500px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="glass-panel main-content">
         
         {view === 'home' && (
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ marginBottom: '1rem', fontSize: '2rem' }}>Seamless Flow,<br/>Professional Grade.</h2>
-            <p style={{ color: '#64748b', marginBottom: '2rem' }}>100% Secure P2P Local File Transfer</p>
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <div className="hero-text">
+               <h2>{t.slogan.split(',')[0]}<br/>{t.slogan.split(',')[1]}</h2>
+               <p>{t.subSlogan}</p>
+            </div>
             
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button onClick={() => setView('sender')} style={btnStyle(true)}>
-                <PaperPlane size={24} weight="regular" /> Send Files
+            <div className="action-buttons">
+              <button onClick={() => setView('sender')} className="btn-primary">
+                <PaperPlane size={24} weight="regular" /> {t.send}
               </button>
-              <button onClick={() => setView('receiver')} style={btnStyle(false)}>
-                <ShieldCheck size={24} weight="regular" /> Receive Files
+              <button onClick={() => setView('receiver')} className="btn-secondary">
+                <ShieldCheck size={24} weight="regular" /> {t.receive}
               </button>
             </div>
             
-            <div onClick={handleBluetoothDiscovery} style={{ marginTop: '3rem', transform: 'scale(0.8)', cursor: 'pointer' }}>
+            <div onClick={handleBluetoothDiscovery} className="radar-container">
               <RadarScanner isScanning={true} />
             </div>
           </div>
         )}
 
         {view === 'sender' && (
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <button onClick={() => setView('home')} style={{ alignSelf: 'flex-start', marginBottom: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--base-indigo)' }}>← Back</button>
+          <div className="view-container">
+            <button onClick={() => setView('home')} className="back-btn">← {t.back}</button>
             
             {connectionStatus === 'connected' ? (
                <div style={{ width: '100%' }}>
-                 <TransferZone status="idle" />
-                 <CloudClipboard />
+                 <TransferZone 
+                   lang={lang} 
+                   sendFile={sendFile} 
+                   progress={transferProgress} 
+                   receivedFile={receivedFile} 
+                 />
+                 <CloudClipboard lang={lang} />
                </div>
             ) : (
                <>
-                 <FlashCodeDisplay code={flashCode} />
+                 <FlashCodeDisplay code={flashCode} lang={lang} />
                  <div style={{ marginTop: '2rem', width: '100%' }}>
-                   <DeviceList devices={discoveredDevices} onScan={handleBluetoothDiscovery} />
+                   <DeviceList devices={discoveredDevices} onScan={handleBluetoothDiscovery} lang={lang} />
                  </div>
                </>
             )}
           </div>
         )}
 
-
         {view === 'receiver' && (
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <button onClick={() => setView('home')} style={{ alignSelf: 'flex-start', marginBottom: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--base-indigo)' }}>← Back</button>
+          <div className="view-container">
+            <button onClick={() => setView('home')} className="back-btn">← {t.back}</button>
             
             {connectionStatus === 'connected' ? (
                <div style={{ width: '100%' }}>
-                 <TransferZone status="idle" />
-                 <CloudClipboard />
+                 <TransferZone 
+                   lang={lang} 
+                   sendFile={sendFile} 
+                   progress={transferProgress} 
+                   receivedFile={receivedFile} 
+                 />
+                 <CloudClipboard lang={lang} />
                </div>
             ) : (
-               <ReceiverInput onComplete={handleReceiveCode} />
+               <ReceiverInput onComplete={handleReceiveCode} lang={lang} />
             )}
           </div>
         )}
 
       </main>
+
+      <footer className="professional-footer">
+        © 2026 Mooka Technologies. All rights reserved.
+      </footer>
     </div>
   )
 }
 
-const btnStyle = (primary) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '12px 24px',
-  borderRadius: '8px',
-  fontSize: '1rem',
-  fontWeight: '500',
-  cursor: 'pointer',
-  border: primary ? 'none' : '1px solid var(--tech-blue)',
-  backgroundColor: primary ? 'var(--tech-blue)' : 'transparent',
-  color: primary ? 'white' : 'var(--tech-blue)',
-  transition: 'all 0.2s',
-})
-
 export default App
+

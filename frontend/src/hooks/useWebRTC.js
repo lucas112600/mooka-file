@@ -1,11 +1,8 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable jsdoc/require-returns */
-
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 
 const URL = 'https://mooka-file.onrender.com'
+const CHUNK_SIZE = 64 * 1024 // 64KB
 
 export function useWebRTC() {
   const [socket, setSocket] = useState(null)
@@ -13,9 +10,13 @@ export function useWebRTC() {
   const [roomId, setRoomId] = useState('')
   const [connectionStatus, setConnectionStatus] = useState('idle') // idle, connecting, connected
   const [flashCode, setFlashCode] = useState('')
+  const [transferProgress, setTransferProgress] = useState(0)
+  const [receivedFile, setReceivedFile] = useState(null)
 
   const sendChannel = useRef(null)
   const receiveChannel = useRef(null)
+  const receivingMetadata = useRef(null)
+  const receivedChunks = useRef([])
 
   useEffect(() => {
     const s = io(URL)
@@ -25,10 +26,10 @@ export function useWebRTC() {
       console.log('Connected to signaling server')
     })
 
-    s.on('peer-connected', async ({ roomId }) => {
-      console.log('Peer connected to room:', roomId)
-      setRoomId(roomId)
-      createPeerConnection(s, roomId, true) // true since I generated code
+    s.on('peer-connected', async ({ roomId: rId }) => {
+      console.log('Peer connected to room:', rId)
+      setRoomId(rId)
+      createPeerConnection(s, rId, true)
     })
 
     s.on('offer', async (offer) => {
@@ -50,7 +51,8 @@ export function useWebRTC() {
     })
 
     return () => s.disconnect()
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerConnection, roomId])
 
   const createPeerConnection = (sigSocket, room, isInitiator) => {
     const pc = new RTCPeerConnection({
@@ -66,7 +68,7 @@ export function useWebRTC() {
     }
 
     if (isInitiator) {
-      const dc = pc.createDataChannel('mookaDataChannel')
+      const dc = pc.createDataChannel('mookaDataChannel', { ordered: true })
       sendChannel.current = dc
       setupDataChannel(dc)
 
@@ -83,6 +85,7 @@ export function useWebRTC() {
   }
 
   const setupDataChannel = (dc) => {
+    dc.binaryType = 'arraybuffer'
     dc.onopen = () => {
       console.log('Data channel open!')
       setConnectionStatus('connected')
@@ -92,8 +95,70 @@ export function useWebRTC() {
       setConnectionStatus('idle')
     }
     dc.onmessage = (event) => {
-      console.log('Received message:', event.data)
+      if (typeof event.data === 'string') {
+        const msg = JSON.parse(event.data)
+        if (msg.type === 'metadata') {
+          receivingMetadata.current = msg
+          receivedChunks.current = []
+          setTransferProgress(0)
+        } else if (msg.type === 'eof') {
+          const blob = new Blob(receivedChunks.current, { 
+            type: receivingMetadata.current.fileType 
+          })
+          setReceivedFile({
+            name: receivingMetadata.current.fileName,
+            blob,
+            url: window.URL.createObjectURL(blob)
+          })
+          setTransferProgress(100)
+          receivedChunks.current = []
+        }
+      } else {
+        receivedChunks.current.push(event.data)
+        let currentSize = 0
+        // eslint-disable-next-line no-return-assign
+        receivedChunks.current.forEach(c => currentSize += c.byteLength)
+        if (receivingMetadata.current) {
+          setTransferProgress(Math.floor((currentSize / receivingMetadata.current.fileSize) * 100))
+        }
+      }
     }
+  }
+
+  const sendFile = async (file) => {
+    if (!sendChannel.current || sendChannel.current.readyState !== 'open') return
+
+    const dc = sendChannel.current
+    const buffer = await file.arrayBuffer()
+    
+    // 1. Send Metadata
+    dc.send(JSON.stringify({
+      type: 'metadata',
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    }))
+
+    // 2. Send Chunks with Backpressure
+    let offset = 0
+    while (offset < buffer.byteLength) {
+      if (dc.bufferedAmount > 65535) {
+        await new Promise(resolve => {
+          dc.onbufferedamountlow = () => {
+            dc.onbufferedamountlow = null
+            resolve()
+          }
+        })
+      }
+
+      const chunk = buffer.slice(offset, offset + CHUNK_SIZE)
+      dc.send(chunk)
+      offset += chunk.byteLength
+      setTransferProgress(Math.floor((offset / buffer.byteLength) * 100))
+    }
+
+    // 3. Send EOF
+    dc.send(JSON.stringify({ type: 'eof' }))
   }
 
   const generateCode = () => {
@@ -120,5 +185,13 @@ export function useWebRTC() {
     })
   }
 
-  return { generateCode, flashCode, verifyCodeAndConnect, connectionStatus }
+  return { 
+    generateCode, 
+    flashCode, 
+    verifyCodeAndConnect, 
+    connectionStatus, 
+    sendFile, 
+    transferProgress, 
+    receivedFile 
+  }
 }

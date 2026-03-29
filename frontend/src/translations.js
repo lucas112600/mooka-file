@@ -1,0 +1,45 @@
+export const translations = {
+  en: {
+    slogan: 'Seamless Flow, Professional Grade.',
+    subSlogan: 'Secure P2P File Transfer for the modern office.',
+    send: 'Send Files',
+    receive: 'Receive Files',
+    nearby: 'Nearby Devices',
+    scan: 'Scan for Devices',
+    scanning: 'Scanning...',
+    noDevices: 'No devices detected. Click scan to find hardware.',
+    back: 'Back',
+    inputCode: 'Input Flash Code',
+    codePrompt: 'Enter the 6-digit code shown on the sender device.',
+    waiting: 'Waiting for connection...',
+    ready: 'Ready to transfer',
+    drop: 'Drop files here to send',
+    clipboard: 'Cloud Clipboard',
+    clipboardDesc: 'Sync text and URLs across devices',
+    batch: 'Supported Formats: PDF, Office, Video, Zip',
+    transferring: 'Transferring...',
+    completed: 'Transfer Complete'
+  },
+  zhtw: {
+    slogan: '流暢傳輸，專業至上',
+    subSlogan: '專為現代辦公室設計的安全 P2P 檔案傳輸',
+    send: '發送檔案',
+    receive: '接收檔案',
+    nearby: '附近裝置',
+    scan: '掃描裝置',
+    scanning: '正在掃描...',
+    noDevices: '未偵測到裝置。點擊掃描按鈕啟動硬體搜索。',
+    back: '返回',
+    inputCode: '輸入閃傳碼',
+    codePrompt: '請輸入發送端顯示的 6 位數代碼',
+    waiting: '正在建立安全連線...',
+    ready: '連線成功，準備傳輸',
+    drop: '拖曳檔案至此處進行發送',
+    clipboard: '雲端剪貼簿',
+    clipboardDesc: '跨裝置同步文字與網址',
+    batch: '支援格式：PDF, Office, 影片, 壓縮檔',
+    transferring: '正在傳輸...',
+    completed: '傳輸完成'
+  }
+}
+
