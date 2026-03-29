@@ -4,11 +4,14 @@ import { io } from 'socket.io-client'
 const URL = 'https://mooka-file.onrender.com'
 const CHUNK_SIZE = 64 * 1024 // 64KB
 
+/**
+ * Hook to manage WebRTC P2P connection and signaling.
+ */
 export function useWebRTC() {
   const [socket, setSocket] = useState(null)
   const [peerConnection, setPeerConnection] = useState(null)
   const [roomId, setRoomId] = useState('')
-  const [connectionStatus, setConnectionStatus] = useState('idle') // idle, connecting, connected
+  const [connectionStatus, setConnectionStatus] = useState('idle')
   const [flashCode, setFlashCode] = useState('')
   const [transferProgress, setTransferProgress] = useState(0)
   const [receivedFile, setReceivedFile] = useState(null)
@@ -27,7 +30,6 @@ export function useWebRTC() {
     })
 
     s.on('peer-connected', async ({ roomId: rId }) => {
-      console.log('Peer connected to room:', rId)
       setRoomId(rId)
       createPeerConnection(s, rId, true)
     })
@@ -50,10 +52,15 @@ export function useWebRTC() {
       await peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
     })
 
-    return () => s.disconnect()
+    return () => {
+      s.disconnect()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peerConnection, roomId])
 
+  /**
+   * Initializes the RTCPeerConnection.
+   */
   const createPeerConnection = (sigSocket, room, isInitiator) => {
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -84,14 +91,15 @@ export function useWebRTC() {
     }
   }
 
+  /**
+   * Configures the data channel.
+   */
   const setupDataChannel = (dc) => {
     dc.binaryType = 'arraybuffer'
     dc.onopen = () => {
-      console.log('Data channel open!')
       setConnectionStatus('connected')
     }
     dc.onclose = () => {
-      console.log('Data channel closed')
       setConnectionStatus('idle')
     }
     dc.onmessage = (event) => {
@@ -102,8 +110,8 @@ export function useWebRTC() {
           receivedChunks.current = []
           setTransferProgress(0)
         } else if (msg.type === 'eof') {
-          const blob = new Blob(receivedChunks.current, { 
-            type: receivingMetadata.current.fileType 
+          const blob = new Blob(receivedChunks.current, {
+            type: receivingMetadata.current.fileType
           })
           setReceivedFile({
             name: receivingMetadata.current.fileName,
@@ -116,8 +124,9 @@ export function useWebRTC() {
       } else {
         receivedChunks.current.push(event.data)
         let currentSize = 0
-        // eslint-disable-next-line no-return-assign
-        receivedChunks.current.forEach(c => currentSize += c.byteLength)
+        receivedChunks.current.forEach((c) => {
+          currentSize += c.byteLength
+        })
         if (receivingMetadata.current) {
           setTransferProgress(Math.floor((currentSize / receivingMetadata.current.fileSize) * 100))
         }
@@ -125,13 +134,15 @@ export function useWebRTC() {
     }
   }
 
+  /**
+   * Sends a file through the data channel in chunks.
+   */
   const sendFile = async (file) => {
     if (!sendChannel.current || sendChannel.current.readyState !== 'open') return
 
     const dc = sendChannel.current
     const buffer = await file.arrayBuffer()
     
-    // 1. Send Metadata
     dc.send(JSON.stringify({
       type: 'metadata',
       fileName: file.name,
@@ -139,11 +150,10 @@ export function useWebRTC() {
       fileType: file.type
     }))
 
-    // 2. Send Chunks with Backpressure
     let offset = 0
     while (offset < buffer.byteLength) {
       if (dc.bufferedAmount > 65535) {
-        await new Promise(resolve => {
+        await new Promise((resolve) => {
           dc.onbufferedamountlow = () => {
             dc.onbufferedamountlow = null
             resolve()
@@ -157,10 +167,12 @@ export function useWebRTC() {
       setTransferProgress(Math.floor((offset / buffer.byteLength) * 100))
     }
 
-    // 3. Send EOF
     dc.send(JSON.stringify({ type: 'eof' }))
   }
 
+  /**
+   * Requests a new flash code.
+   */
   const generateCode = () => {
     if (socket) {
       socket.emit('generate-code', (res) => {
@@ -169,6 +181,9 @@ export function useWebRTC() {
     }
   }
 
+  /**
+   * Verifies the code and initiates connection.
+   */
   const verifyCodeAndConnect = (code) => {
     return new Promise((resolve, reject) => {
       if (socket) {
@@ -185,13 +200,13 @@ export function useWebRTC() {
     })
   }
 
-  return { 
-    generateCode, 
-    flashCode, 
-    verifyCodeAndConnect, 
-    connectionStatus, 
-    sendFile, 
-    transferProgress, 
-    receivedFile 
+  return {
+    generateCode,
+    flashCode,
+    verifyCodeAndConnect,
+    connectionStatus,
+    sendFile,
+    transferProgress,
+    receivedFile
   }
 }
