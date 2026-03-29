@@ -1,4 +1,4 @@
-import { Radar } from '@phosphor-icons/react'
+import { CirclesThree } from '@phosphor-icons/react'
 
 export default function RadarScanner({ isScanning }) {
   return (
@@ -12,7 +12,7 @@ export default function RadarScanner({ isScanning }) {
         animation: isScanning ? 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite' : 'none',
         opacity: 0.2
       }}></div>
-      <Radar size={48} color="var(--tech-blue)" weight="regular" />
+      <CirclesThree size={48} color="var(--tech-blue)" weight="regular" />
       <style>{`
         @keyframes ping {
           75%, 100% {

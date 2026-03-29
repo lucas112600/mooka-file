@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 
-const URL = 'http://localhost:3001'
+const URL = 'https://mooka-file.onrender.com'
 
 export function useWebRTC() {
   const [socket, setSocket] = useState(null)
