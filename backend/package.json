@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'Skipping backend build, using pre-compiled dist'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
