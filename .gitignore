@@ -1,3 +1,4 @@
 node_modules
 .env
-dist
+# Allowing dist for unified portal deployment
+!backend/dist
