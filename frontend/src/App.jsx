@@ -10,6 +10,7 @@ import { useWebRTC } from './hooks/useWebRTC'
 
 function App() {
   const [view, setView] = useState('home') // home, sender, receiver
+  const [discoveredDevices, setDiscoveredDevices] = useState([])
   const { generateCode, flashCode, verifyCodeAndConnect, connectionStatus } = useWebRTC()
 
   useEffect(() => {
@@ -17,6 +18,27 @@ function App() {
       generateCode()
     }
   }, [view, flashCode, generateCode])
+
+  const handleBluetoothDiscovery = async () => {
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true
+      })
+      
+      const newDevice = {
+        id: device.id,
+        name: device.name || 'Unknown Device',
+        type: device.name?.toLowerCase().includes('iphone') || device.name?.toLowerCase().includes('android') ? 'mobile' : 'desktop'
+      }
+
+      setDiscoveredDevices(prev => {
+        if (prev.find(d => d.id === newDevice.id)) return prev
+        return [...prev, newDevice]
+      })
+    } catch (error) {
+      console.error('Bluetooth Discovery Error:', error)
+    }
+  }
 
   const handleReceiveCode = async (code) => {
     try {
@@ -53,7 +75,7 @@ function App() {
               </button>
             </div>
             
-            <div style={{ marginTop: '3rem', transform: 'scale(0.8)' }}>
+            <div onClick={handleBluetoothDiscovery} style={{ marginTop: '3rem', transform: 'scale(0.8)', cursor: 'pointer' }}>
               <RadarScanner isScanning={true} />
             </div>
           </div>
@@ -72,12 +94,13 @@ function App() {
                <>
                  <FlashCodeDisplay code={flashCode} />
                  <div style={{ marginTop: '2rem', width: '100%' }}>
-                   <DeviceList />
+                   <DeviceList devices={discoveredDevices} onScan={handleBluetoothDiscovery} />
                  </div>
                </>
             )}
           </div>
         )}
+
 
         {view === 'receiver' && (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
